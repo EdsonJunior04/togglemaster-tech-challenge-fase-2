@@ -1,0 +1,18 @@
+apiVersion: v1
+data:
+  init.sql: "CREATE TABLE IF NOT EXISTS flags (\r\n    id SERIAL PRIMARY KEY,\r\n\r\n
+    \   -- 'name' é a chave de negócio única (ex: 'enable-new-checkout')\r\n    name
+    VARCHAR(100) UNIQUE NOT NULL, \r\n    \r\n    description TEXT,\r\n    \r\n    --
+    Este é o 'kill switch' global. Se for false, a flag está desativada para todos.\r\n
+    \   is_enabled BOOLEAN NOT NULL DEFAULT false,\r\n    \r\n    created_at TIMESTAMP
+    WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,\r\n    updated_at TIMESTAMP WITH TIME
+    ZONE DEFAULT CURRENT_TIMESTAMP\r\n);\r\n\r\n-- Opcional, mas boa prática: Trigger
+    para atualizar 'updated_at' automaticamente\r\nCREATE OR REPLACE FUNCTION trigger_set_timestamp()\r\nRETURNS
+    TRIGGER AS $$\r\nBEGIN\r\n  NEW.updated_at = NOW();\r\n  RETURN NEW;\r\nEND;\r\n$$
+    LANGUAGE plpgsql;\r\n\r\n-- Remove o trigger se já existir, para evitar erro na
+    recriação\r\nDROP TRIGGER IF EXISTS set_timestamp ON flags;\r\n\r\nCREATE TRIGGER
+    set_timestamp\r\nBEFORE UPDATE ON flags\r\nFOR EACH ROW\r\nEXECUTE PROCEDURE trigger_set_timestamp();"
+kind: ConfigMap
+metadata:
+  name: flag-db-init-sql
+  namespace: togglemaster
