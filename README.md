@@ -30,21 +30,34 @@ Cliente
 
 ```txt
 .
-├── analytics-service/
-├── auth-service/
-├── evaluation-service/
-├── flag-service/
-├── targeting-service/
-├── docker/
-├── k8s/
-│   ├── apps/
-│   ├── hpa/
-│   ├── ingress/
-│   └── jobs/
-├── docker-compose.yaml
-├── .env.example
-└── README.md
+|-- analytics-service/
+|-- auth-service/
+|-- evaluation-service/
+|-- flag-service/
+|-- targeting-service/
+|-- docker/
+|-- docs/
+|   |-- arquitetura-togglemaster-eks.png
+|   `-- relatorio-tech-challenge-fase-2.md
+|-- k8s/
+|   |-- apps/
+|   |-- hpa/
+|   |-- ingress/
+|   `-- jobs/
+|-- output/
+|   `-- pdf/
+|       `-- relatorio-tech-challenge-fase-2.pdf
+|-- docker-compose.yaml
+|-- .env.example
+`-- README.md
 ```
+
+## Entregaveis
+
+- Repositorio GitHub: https://github.com/mathvillao/togglemaster-tech-challenge-fase-2.git
+- Video demonstrativo: https://youtu.be/NDFY0PQ9oQs?si=wv0zMjZN6zacrQ2S
+- Relatorio final: [`output/pdf/relatorio-tech-challenge-fase-2.pdf`](output/pdf/relatorio-tech-challenge-fase-2.pdf)
+- Diagrama da arquitetura: [`docs/arquitetura-togglemaster-eks.png`](docs/arquitetura-togglemaster-eks.png)
 
 ## Execucao Local Com Docker Compose
 
