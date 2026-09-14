@@ -1,0 +1,13 @@
+# Copie para terraform.tfvars (que fica no .gitignore) e ajuste os valores.
+aws_region   = "us-east-1"
+project_name = "togglemaster"
+environment  = "dev"
+
+use_academy_lab_role = true
+lab_role_name         = "LabRole"
+
+cluster_name = "togglemaster-cluster"
+
+# NUNCA commite senha real. Prefira exportar via variável de ambiente:
+#   export TF_VAR_db_password="sua-senha-forte"
+db_password = "troque-esta-senha"

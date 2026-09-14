@@ -1,0 +1,24 @@
+name: CI - analytics-service
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "analytics-service/**"
+      - ".github/workflows/ci-analytics-service.yml"
+      - ".github/workflows/reusable-ci.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "analytics-service/**"
+
+jobs:
+  ci:
+    uses: ./.github/workflows/reusable-ci.yml
+    with:
+      service_name: analytics-service
+      language: python
+    secrets:
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      AWS_SESSION_TOKEN: ${{ secrets.AWS_SESSION_TOKEN }}
