@@ -12,7 +12,7 @@ data:
   CREATE_DYNAMODB_TABLE_IF_NOT_EXISTS: "false"
 
   # Troque pelo redis_endpoint do `terraform output`
-  REDIS_URL: rediss://togglemaster-redis.ie29o6.0001.use1.cache.amazonaws.com:6379
+  REDIS_URL: redis://togglemaster-redis.ie29o6.0001.use1.cache.amazonaws.com:6379
 
   AUTH_SERVICE_URL: http://auth-service:8001
   FLAG_SERVICE_URL: http://flag-service:8002
