@@ -150,7 +150,7 @@ def update_rule(flag_name):
     
     values.append(flag_name) # Adiciona o 'flag_name' para a cláusula WHERE
     
-    query = f"UPDATE targeting_rules SET {', '.join(fields)} WHERE flag_name = %s RETURNING *"
+    query = f"UPDATE targeting_rules SET {', '.join(fields)} WHERE flag_name = %s RETURNING *"  # nosec B608 - fields e valores sao parametrizados, nao vem de input do usuario
     
     conn = None
     cur = None
@@ -201,4 +201,4 @@ def delete_rule(flag_name):
 
 if __name__ == '__main__':
     port = int(os.getenv("PORT", 8003))
-    app.run(host='0.0.0.0', port=port, debug=False)# build 1789441663
+    app.run(host='0.0.0.0', port=port, debug=False)  # nosec B104 - bind necessario para funcionar em container Docker# build 1789441663
