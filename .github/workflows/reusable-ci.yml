@@ -79,10 +79,10 @@ jobs:
 
       - name: golangci-lint
         if: inputs.language == 'go'
-        uses: golangci/golangci-lint-action@v6
+        uses: golangci/golangci-lint-action@v7
         with:
           working-directory: ${{ inputs.service_name }}
-          version: latest
+          version: v2.13.2
           args: --timeout=5m
 
       - name: Setup Python
