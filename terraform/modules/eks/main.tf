@@ -106,6 +106,8 @@ resource "aws_eks_node_group" "default" {
 
   instance_types = var.node_instance_types
 
+  ami_type = "AL2023_x86_64_STANDARD"
+
   scaling_config {
     desired_size = var.node_desired_size
     min_size     = var.node_min_size

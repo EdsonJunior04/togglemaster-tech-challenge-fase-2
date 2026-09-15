@@ -50,7 +50,7 @@ variable "cluster_name" {
 
 variable "kubernetes_version" {
   type    = string
-  default = "1.30"
+  default = "1.34"
 }
 
 variable "node_instance_types" {
@@ -81,7 +81,7 @@ variable "db_instance_class" {
 
 variable "db_engine_version" {
   type    = string
-  default = "16.4"
+  default = "16.9"
 }
 
 variable "db_username" {

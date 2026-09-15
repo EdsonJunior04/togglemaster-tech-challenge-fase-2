@@ -7,12 +7,12 @@ data:
   AWS_REGION: us-east-1
   AWS_DYNAMODB_TABLE: ToggleMasterAnalytics
   # Troque pela sqs_queue_url do `terraform output` após o apply
-  AWS_SQS_URL: https://sqs.us-east-1.amazonaws.com/SEU_ACCOUNT_ID/togglemaster-analytics-queue
+  AWS_SQS_URL: https://sqs.us-east-1.amazonaws.com/022992545057/togglemaster-analytics-queue
   SQS_WORKER_ENABLED: "true"
   CREATE_DYNAMODB_TABLE_IF_NOT_EXISTS: "false"
 
   # Troque pelo redis_endpoint do `terraform output`
-  REDIS_URL: rediss://SEU-ENDPOINT-ELASTICACHE:6379
+  REDIS_URL: rediss://togglemaster-redis.ie29o6.0001.use1.cache.amazonaws.com:6379
 
   AUTH_SERVICE_URL: http://auth-service:8001
   FLAG_SERVICE_URL: http://flag-service:8002
