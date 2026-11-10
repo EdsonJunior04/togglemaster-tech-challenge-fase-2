@@ -20,6 +20,18 @@ spec:
           ports:
             - containerPort: 8005
           env:
+            - name: OTEL_SERVICE_NAME
+              value: analytics-service
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: http://otel-collector.observability.svc.cluster.local:4317
+            - name: OTEL_EXPORTER_OTLP_PROTOCOL
+              value: grpc
+            - name: OTEL_EXPORTER_OTLP_INSECURE
+              value: "true"
+            - name: OTEL_TRACES_EXPORTER
+              value: otlp
+            - name: OTEL_METRICS_EXPORTER
+              value: otlp
             - name: PORT
               valueFrom:
                 configMapKeyRef:

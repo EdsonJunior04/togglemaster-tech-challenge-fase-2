@@ -1,9 +1,9 @@
-# SETUP.md — Ordem de execução (Tech Challenge Fase 3)
+# SETUP.md — Setup das Fases 3 e 4
 
-Este pacote deve ser mesclado na raiz do repositório
-`togglemaster-tech-challenge-fase-2` (copie as pastas `terraform/`,
-`.github/`, `gitops/` e `argocd/` para dentro do repo existente, ao lado de
-`auth-service/`, `flag-service/`, etc.).
+Este repositório contém a base da Fase 3 e a extensão de observabilidade da
+Fase 4. A configuração atual do ArgoCD aponta para
+`Pedroxzz/togglemaster-tech-challenge-fase-4`; ajuste `repoURL` nos manifests
+`argocd/applications/` caso o repositório de entrega tenha outro endereço.
 
 ## 0. Pré-requisitos
 
@@ -61,7 +61,7 @@ No repositório GitHub, em Settings → Secrets and variables → Actions, crie:
 - `AWS_SECRET_ACCESS_KEY`
 - `AWS_SESSION_TOKEN` (credenciais temporárias do AWS Academy — atualize a cada sessão de lab)
 
-## 5. Registrar as Applications no ArgoCD
+## 5. Registrar as Applications da Fase 3 no ArgoCD
 
 ```bash
 kubectl apply -f argocd/applications/00-bootstrap.yaml
@@ -75,7 +75,107 @@ kubectl apply -f argocd/applications/analytics-service.yaml
 Acesse a UI do ArgoCD (ver `argocd/install/README.md` pra pegar URL e senha) e
 confirme os 5 apps sincronizados — **isso é print/vídeo obrigatório**.
 
-## 6. Rodar o pipeline de CI/CD (para o vídeo de DevSecOps)
+## 6. Fase 4 — instalar observabilidade e resposta ativa
+
+### 6.1 Criar e preencher os Secrets
+
+Crie o namespace antes do Secret. O arquivo real está ignorado pelo Git:
+
+```bash
+kubectl create namespace observability --dry-run=client -o yaml | kubectl apply -f -
+cp gitops/observability/secrets.example.yaml gitops/observability/secrets.yaml
+```
+
+Preencha `gitops/observability/secrets.yaml` com:
+
+- `newrelic-license-key`: license key da conta New Relic;
+- `pagerduty-routing-key`: integration/routing key do serviço PagerDuty;
+- `discord-webhook-url`: URL do webhook do canal Discord;
+- `alert-webhook-token`: token aleatório compartilhado entre Alertmanager e o
+  serviço interno de automação (gere, por exemplo, com `openssl rand -hex 32`).
+
+Não versionar o arquivo preenchido. Aplique-o antes de sincronizar os apps:
+
+```bash
+kubectl apply -f gitops/observability/secrets.yaml
+```
+
+### 6.2 Atualizar ECR e construir a imagem da automação
+
+O Terraform agora cria o repositório ECR `observability-actions`. Aplique a
+alteração de `terraform/variables.tf` antes do primeiro deploy. Depois, envie
+as mudanças para `main` e aguarde o workflow
+`.github/workflows/ci-observability-actions.yml` concluir o build, scan e push
+da imagem. O workflow também atualiza a tag no GitOps.
+
+### 6.3 Registrar os apps do ArgoCD
+
+```bash
+kubectl apply -f argocd/applications/observability-loki.yaml
+kubectl apply -f argocd/applications/observability-prometheus.yaml
+kubectl wait --for=condition=Established --timeout=180s \
+  crd/servicemonitors.monitoring.coreos.com
+kubectl apply -f argocd/applications/observability-otel.yaml
+kubectl apply -f argocd/applications/observability-actions.yaml
+```
+
+O Prometheus/Grafana e o Loki são instalados via Helm chart gerenciado pelo
+ArgoCD. O OTel Collector coleta logs dos nodes e recebe métricas/traces dos
+serviços; envia logs ao Loki, métricas ao Prometheus e telemetria ao New Relic.
+O dashboard é provisionado por ConfigMap. O serviço de self-healing é interno,
+autenticado pelo token e só pode aplicar patch nos Deployments `auth-service` e
+`evaluation-service`.
+
+### 6.4 Validar o fluxo e coletar as evidências
+
+```bash
+kubectl get applications -n argocd
+kubectl get pods,svc -n observability
+kubectl get servicemonitor -n observability
+kubectl port-forward -n observability svc/togglemaster-observability-grafana 3000:80
+```
+
+No Grafana, acesse `http://localhost:3000`, abra o dashboard **ToggleMaster -
+Saúde do Ecossistema** e consulte logs em Explore com
+`{k8s_namespace_name="togglemaster"}`. A senha inicial do Grafana é criada em
+Secret pelo chart; obtenha-a com:
+
+```bash
+kubectl get secret -n observability togglemaster-observability-grafana \
+  -o jsonpath='{.data.admin-password}' | base64 -d; echo
+```
+
+Gere tráfego em `/evaluate` para preencher métricas e traces. No New Relic,
+mostre o Service Map e um trace completo, incluindo as chamadas a flags e
+targeting e o evento assíncrono enviado para SQS/consumido pelo analytics.
+
+Para demonstrar self-healing sem indisponibilizar o banco, em ambiente de teste
+pause temporariamente a reconciliação automática desse app (para o ArgoCD não
+reverter o teste), reduza o `auth-service` a zero réplicas e depois restaure a
+Application original:
+
+```bash
+kubectl patch application auth-service -n argocd --type=merge \
+  -p '{"spec":{"syncPolicy":{"automated":null}}}'
+kubectl scale deployment/auth-service -n togglemaster --replicas=0
+kubectl get deployment/auth-service -n togglemaster -w
+# Depois da evidência e do rollout Ready, reative o GitOps:
+kubectl apply -f argocd/applications/auth-service.yaml
+```
+
+O alerta `AuthServiceUnavailable` dispara após 1 minuto; PagerDuty e Discord
+recebem a notificação e a automação restaura uma réplica e reinicia o pod.
+Mostre o evento no Alertmanager/Grafana, no PagerDuty, no Discord e o novo pod
+ficando Ready. Faça este teste somente em ambiente controlado. A integração
+também monitora erros 5xx de auth e evaluation; o self-healing limita reinícios
+repetidos ao mesmo alerta por 10 minutos.
+O restart mitiga falhas transitórias; uma dependência persistentemente
+indisponível (por exemplo, o banco de dados) ainda exige correção da causa raiz.
+
+Inclua as capturas exigidas no relatório baseado em
+`docs/RELATORIO-FASE4-template.md`.
+
+## 7. Rodar o pipeline de CI/CD da Fase 3 (para o vídeo de DevSecOps)
 
 1. Dê um `git push` numa branch e abra PR alterando algo em `auth-service/`
    → mostra o pipeline rodando build/lint/security scan.
@@ -87,7 +187,7 @@ confirme os 5 apps sincronizados — **isso é print/vídeo obrigatório**.
 4. Mostre o ArgoCD detectando a mudança no Git e sincronizando automaticamente
    a nova versão no cluster.
 
-## 7. Roteiro sugerido do vídeo (até 20 min)
+## 8. Roteiro sugerido para demonstrar a Fase 3 (até 20 min)
 
 1. `terraform plan`/`apply` ou os recursos já criados no console (3–4 min)
 2. Estrutura do código Terraform (módulos) (1–2 min)
@@ -97,10 +197,12 @@ confirme os 5 apps sincronizados — **isso é print/vídeo obrigatório**.
 6. ArgoCD sincronizando automaticamente no cluster (2–3 min)
 7. Encerramento com resumo (1 min)
 
-## 8. Entregáveis finais
+## 9. Entregáveis finais
 
 - Vídeo (link do YouTube/Drive)
 - Código-fonte no repositório (já commitado com este pacote)
 - Relatório PDF/txt — ver template em `docs/RELATORIO-FASE3-template.md`
   (nomes, links, resumo de decisões, print de custo estimado da AWS —
   Billing → Cost Explorer ou AWS Pricing Calculator)
+- Para a Fase 4, use também `docs/RELATORIO-FASE4-template.md`; o vídeo deve
+  evidenciar todas as integrações solicitadas e pode ter até 25 minutos.

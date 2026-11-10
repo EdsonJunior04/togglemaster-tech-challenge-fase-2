@@ -4,3 +4,7 @@ gunicorn==26.0.0
 python-dotenv==0.21.0
 boto3==1.43.38
 urllib3==2.7.0
+opentelemetry-distro==0.58b0
+opentelemetry-exporter-otlp==1.37.0
+opentelemetry-instrumentation-flask==0.58b0
+opentelemetry-instrumentation-botocore==0.58b0

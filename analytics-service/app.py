@@ -9,7 +9,8 @@ import uuid
 import boto3
 from botocore.exceptions import ClientError, NoCredentialsError
 from dotenv import load_dotenv
-from flask import Flask, jsonify
+from flask import Flask, jsonify, request
+from opentelemetry import metrics, propagation, trace
 
 load_dotenv()
 
@@ -75,32 +76,41 @@ def ensure_dynamodb_table():
 
 def process_message(message):
     """Process one SQS message and persist the analytics event in DynamoDB."""
-    try:
-        log.info("Processando mensagem ID: %s", message["MessageId"])
-        body = json.loads(message["Body"])
-        event_id = str(uuid.uuid4())
+    attributes = message.get("MessageAttributes", {})
+    carrier = {
+        key: value.get("StringValue", "")
+        for key, value in attributes.items()
+        if value.get("StringValue")
+    }
+    parent_context = propagation.extract(carrier)
 
-        item = {
-            "event_id": {"S": event_id},
-            "user_id": {"S": body["user_id"]},
-            "flag_name": {"S": body["flag_name"]},
-            "result": {"BOOL": body["result"]},
-            "timestamp": {"S": body["timestamp"]},
-        }
+    with tracer.start_as_current_span("analytics.process_sqs_message", context=parent_context):
+        try:
+            log.info("Processando mensagem ID: %s", message["MessageId"])
+            body = json.loads(message["Body"])
+            event_id = str(uuid.uuid4())
 
-        dynamodb_client.put_item(TableName=DYNAMODB_TABLE_NAME, Item=item)
-        log.info("Evento %s (Flag: %s) salvo no DynamoDB.", event_id, body["flag_name"])
+            item = {
+                "event_id": {"S": event_id},
+                "user_id": {"S": body["user_id"]},
+                "flag_name": {"S": body["flag_name"]},
+                "result": {"BOOL": body["result"]},
+                "timestamp": {"S": body["timestamp"]},
+            }
 
-        sqs_client.delete_message(
-            QueueUrl=SQS_QUEUE_URL,
-            ReceiptHandle=message["ReceiptHandle"],
-        )
-    except json.JSONDecodeError:
-        log.error("Erro ao decodificar JSON da mensagem ID: %s", message["MessageId"])
-    except ClientError as exc:
-        log.error("Erro do Boto3 ao processar %s: %s", message["MessageId"], exc)
-    except Exception as exc:
-        log.error("Erro inesperado ao processar %s: %s", message["MessageId"], exc)
+            dynamodb_client.put_item(TableName=DYNAMODB_TABLE_NAME, Item=item)
+            log.info("Evento %s (Flag: %s) salvo no DynamoDB.", event_id, body["flag_name"])
+
+            sqs_client.delete_message(
+                QueueUrl=SQS_QUEUE_URL,
+                ReceiptHandle=message["ReceiptHandle"],
+            )
+        except json.JSONDecodeError:
+            log.error("Erro ao decodificar JSON da mensagem ID: %s", message["MessageId"])
+        except ClientError as exc:
+            log.error("Erro do Boto3 ao processar %s: %s", message["MessageId"], exc)
+        except Exception as exc:
+            log.error("Erro inesperado ao processar %s: %s", message["MessageId"], exc)
 
 
 def sqs_worker_loop():
@@ -112,7 +122,11 @@ def sqs_worker_loop():
                 QueueUrl=SQS_QUEUE_URL,
                 MaxNumberOfMessages=10,
                 WaitTimeSeconds=20,
+                MessageAttributeNames=["All"],
             )
+
+
+
 
             messages = response.get("Messages", [])
             if not messages:
@@ -130,6 +144,22 @@ def sqs_worker_loop():
 
 
 app = Flask(__name__)
+request_counter = metrics.get_meter("togglemaster").create_counter("http.server.requests")
+tracer = trace.get_tracer("analytics-service")
+
+
+@app.after_request
+def record_request(response):
+    request_counter.add(
+        1,
+        {
+            "service": "analytics-service",
+            "http.request.method": request.method,
+            "http.response.status_code": response.status_code,
+            "http.route": request.url_rule.rule if request.url_rule else "unmatched",
+        },
+    )
+    return response
 
 
 @app.route("/health")

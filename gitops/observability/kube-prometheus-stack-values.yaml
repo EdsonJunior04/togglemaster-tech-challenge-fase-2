@@ -1,0 +1,123 @@
+grafana:
+  enabled: true
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+  sidecar:
+    dashboards:
+      enabled: true
+      label: grafana_dashboard
+      labelValue: "1"
+      searchNamespace: ALL
+  additionalDataSources:
+    - name: Loki
+      type: loki
+      access: proxy
+      url: http://loki-gateway.observability.svc.cluster.local
+      uid: loki
+      isDefault: false
+
+prometheus:
+  prometheusSpec:
+    serviceMonitorSelectorNilUsesHelmValues: false
+    serviceMonitorSelector: {}
+    serviceMonitorNamespaceSelector: {}
+    retention: 7d
+    retentionSize: 5GB
+    resources:
+      requests:
+        cpu: 250m
+        memory: 512Mi
+      limits:
+        cpu: 1
+        memory: 1Gi
+    storageSpec:
+      volumeClaimTemplate:
+        spec:
+          accessModes: ["ReadWriteOnce"]
+          resources:
+            requests:
+              storage: 5Gi
+
+alertmanager:
+  enabled: true
+  alertmanagerSpec:
+    secrets:
+      - observability-integrations
+  config:
+    global:
+      resolve_timeout: 5m
+    route:
+      receiver: togglemaster-integrations
+      group_by: [alertname, service]
+      group_wait: 30s
+      group_interval: 5m
+      repeat_interval: 4h
+    receivers:
+      - name: "null"
+      - name: togglemaster-integrations
+        pagerduty_configs:
+          - routing_key_file: /etc/alertmanager/secrets/observability-integrations/pagerduty-routing-key
+            severity: '{{ .CommonLabels.severity }}'
+            description: '{{ .CommonAnnotations.summary }}'
+            send_resolved: true
+        webhook_configs:
+          - url: http://observability-actions.observability.svc.cluster.local:8080/discord
+            send_resolved: false
+            http_config:
+              authorization:
+                type: Bearer
+                credentials_file: /etc/alertmanager/secrets/observability-integrations/alert-webhook-token
+          - url: http://observability-actions.observability.svc.cluster.local:8080/self-heal
+            send_resolved: false
+            http_config:
+              authorization:
+                type: Bearer
+                credentials_file: /etc/alertmanager/secrets/observability-integrations/alert-webhook-token
+
+additionalPrometheusRulesMap:
+  togglemaster-service-errors:
+    groups:
+      - name: togglemaster-service-errors
+        rules:
+          - alert: AuthServiceHigh5xx
+            expr: |
+              (
+                sum(rate(http_server_requests_total{service="auth-service",http_response_status_code=~"5.."}[5m]))
+                /
+                clamp_min(sum(rate(http_server_requests_total{service="auth-service"}[5m])), 0.001)
+              ) > 0.05
+            for: 2m
+            labels:
+              severity: critical
+              service: auth-service
+            annotations:
+              summary: "auth-service retornando mais de 5% de erros HTTP 5xx"
+              description: "A proporção de respostas 5xx do auth-service ficou acima de 5% por pelo menos 2 minutos."
+          - alert: EvaluationServiceHigh5xx
+            expr: |
+              (
+                sum(rate(http_server_requests_total{service="evaluation-service",http_response_status_code=~"5.."}[5m]))
+                /
+                clamp_min(sum(rate(http_server_requests_total{service="evaluation-service"}[5m])), 0.001)
+              ) > 0.05
+            for: 2m
+            labels:
+              severity: critical
+              service: evaluation-service
+            annotations:
+              summary: "evaluation-service retornando mais de 5% de erros HTTP 5xx"
+              description: "A proporção de respostas 5xx do evaluation-service ficou acima de 5% por pelo menos 2 minutos."
+          - alert: AuthServiceUnavailable
+            expr: kube_deployment_status_replicas_available{namespace="togglemaster",deployment="auth-service"} < 1
+            for: 1m
+            labels:
+              severity: critical
+              service: auth-service
+            annotations:
+              summary: "auth-service sem réplicas disponíveis"
+              description: "O deployment do auth-service ficou sem réplicas disponíveis por pelo menos 1 minuto."

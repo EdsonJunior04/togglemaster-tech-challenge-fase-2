@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: observability-actions
+  namespace: observability
+spec:
+  type: ClusterIP
+  selector:
+    app: observability-actions
+  ports:
+    - name: http
+      port: 8080
+      targetPort: http

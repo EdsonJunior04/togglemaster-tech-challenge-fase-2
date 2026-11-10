@@ -1,4 +1,16 @@
-# ToggleMaster - Tech Challenge Fase 2
+# ToggleMaster - Tech Challenge Fases 2, 3 e 4
+
+## Fase 4 — Observabilidade e resposta ativa
+
+A evolução da Fase 4 adiciona Prometheus, Grafana e Loki pelo GitOps, além do
+OpenTelemetry Collector como gateway de métricas, logs e traces. Os cinco
+microsserviços exportam telemetria para o Collector; o APM escolhido é New
+Relic. Alertmanager encaminha incidentes ao PagerDuty e Discord e aciona um
+webhook interno de self-healing com RBAC limitado.
+
+O fluxo de instalação, Secrets, validação prática e evidências está em
+[`SETUP.md`](SETUP.md). O relatório para a entrega está em
+[`docs/RELATORIO-FASE4-template.md`](docs/RELATORIO-FASE4-template.md).
 
 Projeto desenvolvido para a Fase 2 do Tech Challenge da Pos Tech. O objetivo foi migrar o ToggleMaster de uma arquitetura monolitica para uma arquitetura baseada em microsservicos, conteinerizada com Docker e executada em Kubernetes na AWS com EKS.
 
@@ -54,7 +66,7 @@ Cliente
 
 ## Entregaveis
 
-- Repositorio GitHub: https://github.com/mathvillao/togglemaster-tech-challenge-fase-2.git
+- Repositorio GitHub: https://github.com/Pedroxzz/togglemaster-tech-challenge-fase-4.git
 - Video demonstrativo: https://youtu.be/NDFY0PQ9oQs?si=wv0zMjZN6zacrQ2S
 - Relatorio final: [`output/pdf/relatorio-tech-challenge-fase-2.pdf`](output/pdf/relatorio-tech-challenge-fase-2.pdf)
 - Diagrama da arquitetura: [`docs/arquitetura-togglemaster-eks.png`](docs/arquitetura-togglemaster-eks.png)

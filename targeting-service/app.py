@@ -9,6 +9,7 @@ from flask import Flask, request, jsonify
 from dotenv import load_dotenv
 from functools import wraps
 import logging
+from opentelemetry import metrics
 
 # Configura o logging
 logging.basicConfig(level=logging.INFO)
@@ -18,6 +19,21 @@ log = logging.getLogger(__name__)
 load_dotenv() 
 
 app = Flask(__name__)
+request_counter = metrics.get_meter("togglemaster").create_counter("http.server.requests")
+
+
+@app.after_request
+def record_request(response):
+    request_counter.add(
+        1,
+        {
+            "service": "targeting-service",
+            "http.request.method": request.method,
+            "http.response.status_code": response.status_code,
+            "http.route": request.url_rule.rule if request.url_rule else "unmatched",
+        },
+    )
+    return response
 
 # --- Configuração ---
 DATABASE_URL = os.getenv("DATABASE_URL")

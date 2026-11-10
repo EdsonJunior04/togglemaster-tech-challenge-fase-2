@@ -109,7 +109,7 @@ variable "services_with_own_db" {
 }
 
 variable "all_services" {
-  description = "Os 5 microsserviços do ToggleMaster (usado para criar os repositórios ECR)"
+  description = "Microsserviços e serviço de automação (repositórios ECR)"
   type        = list(string)
-  default     = ["auth-service", "flag-service", "targeting-service", "evaluation-service", "analytics-service"]
+  default     = ["auth-service", "flag-service", "targeting-service", "evaluation-service", "analytics-service", "observability-actions"]
 }

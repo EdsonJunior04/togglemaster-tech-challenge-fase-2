@@ -1,0 +1,66 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: togglemaster-observability-dashboard
+  namespace: observability
+  labels:
+    grafana_dashboard: "1"
+data:
+  togglemaster-overview.json: |
+    {
+      "annotations": {"list": []},
+      "editable": true,
+      "panels": [
+        {
+          "datasource": {"type": "prometheus", "uid": "prometheus"},
+          "fieldConfig": {"defaults": {"unit": "percent"}, "overrides": []},
+          "gridPos": {"h": 8, "w": 12, "x": 0, "y": 0},
+          "id": 1,
+          "targets": [{"expr": "100 * (1 - avg(rate(node_cpu_seconds_total{mode=\"idle\"}[5m])))", "refId": "A"}],
+          "title": "Uso de CPU do cluster",
+          "type": "timeseries"
+        },
+        {
+          "datasource": {"type": "prometheus", "uid": "prometheus"},
+          "fieldConfig": {"defaults": {"unit": "bytes"}, "overrides": []},
+          "gridPos": {"h": 8, "w": 12, "x": 12, "y": 0},
+          "id": 2,
+          "targets": [{"expr": "sum by (instance) (container_memory_working_set_bytes{container!=\"\", image!=\"\"})", "refId": "A"}],
+          "title": "Memória usada por container",
+          "type": "timeseries"
+        },
+        {
+          "datasource": {"type": "prometheus", "uid": "prometheus"},
+          "fieldConfig": {"defaults": {"unit": "reqps"}, "overrides": []},
+          "gridPos": {"h": 8, "w": 24, "x": 0, "y": 8},
+          "id": 3,
+          "targets": [{"expr": "sum by (service) (rate(http_server_requests_total[5m]))", "legendFormat": "{{service}}", "refId": "A"}],
+          "title": "Taxa de requisições HTTP por microsserviço",
+          "type": "timeseries"
+        },
+        {
+          "datasource": {"type": "prometheus", "uid": "prometheus"},
+          "fieldConfig": {"defaults": {"unit": "percent"}, "overrides": []},
+          "gridPos": {"h": 8, "w": 24, "x": 0, "y": 16},
+          "id": 4,
+          "targets": [{"expr": "100 * sum by (service) (rate(http_server_requests_total{http_response_status_code=~\"5..\"}[5m])) / clamp_min(sum by (service) (rate(http_server_requests_total[5m])), 0.001)", "legendFormat": "{{service}}", "refId": "A"}],
+          "title": "Proporção de erros HTTP 5xx",
+          "type": "timeseries"
+        },
+        {
+          "datasource": {"type": "loki", "uid": "loki"},
+          "gridPos": {"h": 10, "w": 24, "x": 0, "y": 24},
+          "id": 5,
+          "targets": [{"expr": "{k8s_namespace_name=\"togglemaster\"}", "refId": "A"}],
+          "title": "Logs recentes dos microsserviços",
+          "type": "logs"
+        }
+      ],
+      "schemaVersion": 39,
+      "tags": ["togglemaster", "observability"],
+      "templating": {"list": []},
+      "time": {"from": "now-1h", "to": "now"},
+      "title": "ToggleMaster - Saúde do Ecossistema",
+      "uid": "togglemaster-overview",
+      "version": 1
+    }

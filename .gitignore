@@ -6,9 +6,12 @@ k8s/*secret*.yaml
 !k8s/01-secrets.example.yaml
 POSTECH - Tech Challenge - Fase 2.pdf
 .agents/
+__pycache__/
+*.py[cod]
 
 # Segredos e artefatos locais (Fase 3)
 gitops/bootstrap/secrets.yaml
+gitops/observability/secrets.yaml
 *.tfstate
 *.tfstate.*
 terraform/kubectl

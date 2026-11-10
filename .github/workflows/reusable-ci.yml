@@ -51,14 +51,18 @@ jobs:
         run: |
           go mod tidy
           go build ./...
-          go test ./... || echo "Sem testes unitários ainda - ajuste quando existirem"
+          go test ./...
 
       - name: Install deps & test (Python)
         if: inputs.language == 'python'
         run: |
           pip install -r requirements.txt
           pip install pytest
-          pytest || echo "Sem testes unitários ainda - ajuste quando existirem"
+          if find . -type f \( -name 'test_*.py' -o -name '*_test.py' \) -print -quit | grep -q .; then
+            pytest
+          else
+            echo "Sem testes unitários neste serviço."
+          fi
 
   # ---------------------------------------------------------------------
   lint:

@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: observability-actions
+  namespace: observability
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: observability-actions
+  template:
+    metadata:
+      labels:
+        app: observability-actions
+    spec:
+      serviceAccountName: observability-actions
+      containers:
+        - name: actions
+          image: 022992545057.dkr.ecr.us-east-1.amazonaws.com/observability-actions:latest
+          imagePullPolicy: Always
+          ports:
+            - name: http
+              containerPort: 8080
+          env:
+            - name: ALERT_WEBHOOK_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: observability-integrations
+                  key: alert-webhook-token
+            - name: DISCORD_WEBHOOK_URL
+              valueFrom:
+                secretKeyRef:
+                  name: observability-integrations
+                  key: discord-webhook-url
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+          resources:
+            requests:
+              cpu: 25m
+              memory: 64Mi
+            limits:
+              cpu: 100m
+              memory: 128Mi

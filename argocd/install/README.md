@@ -28,7 +28,7 @@ kubectl -n argocd get svc argocd-server \
   -o jsonpath="{.status.loadBalancer.ingress[0].hostname}"
 ```
 
-## Aplicar as Applications (bootstrap + 5 microsserviços)
+## Aplicar as Applications (bootstrap + microsserviços)
 
 ```bash
 kubectl apply -f argocd/applications/00-bootstrap.yaml
@@ -37,6 +37,18 @@ kubectl apply -f argocd/applications/flag-service.yaml
 kubectl apply -f argocd/applications/targeting-service.yaml
 kubectl apply -f argocd/applications/evaluation-service.yaml
 kubectl apply -f argocd/applications/analytics-service.yaml
+```
+
+## Aplicar a stack de observabilidade (Fase 4)
+
+Crie/aplique primeiro o Secret `gitops/observability/secrets.yaml` conforme
+`SETUP.md`, depois registre:
+
+```bash
+kubectl apply -f argocd/applications/observability-loki.yaml
+kubectl apply -f argocd/applications/observability-prometheus.yaml
+kubectl apply -f argocd/applications/observability-otel.yaml
+kubectl apply -f argocd/applications/observability-actions.yaml
 ```
 
 ## Aplicar os secrets (fora do GitOps, credenciais sensíveis)
