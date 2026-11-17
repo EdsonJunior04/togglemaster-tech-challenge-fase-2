@@ -49,3 +49,9 @@ resultsCache:
   enabled: false
 minio:
   enabled: false
+
+# Economiza pods/memória no cluster do lab (t3.medium tem limite de 17 pods por nó)
+lokiCanary:
+  enabled: false
+test:
+  enabled: false

@@ -35,13 +35,20 @@ prometheus:
       limits:
         cpu: 1
         memory: 1Gi
-    storageSpec:
-      volumeClaimTemplate:
-        spec:
-          accessModes: ["ReadWriteOnce"]
-          resources:
-            requests:
-              storage: 5Gi
+    # Sem PVC: o cluster não tem o EBS CSI driver instalado, então um
+    # volumeClaimTemplate deixaria o Prometheus em Pending. Para o lab,
+    # emptyDir é suficiente (métricas se perdem só se o pod for recriado).
+
+# No EKS o control plane é gerenciado pela AWS: esses alvos não são
+# acessíveis e as regras padrão (KubeSchedulerDown etc.) disparariam sempre.
+kubeScheduler:
+  enabled: false
+kubeControllerManager:
+  enabled: false
+kubeEtcd:
+  enabled: false
+kubeProxy:
+  enabled: false
 
 alertmanager:
   enabled: true
@@ -51,12 +58,18 @@ alertmanager:
   config:
     global:
       resolve_timeout: 5m
+    # Rota padrão descarta (Watchdog e regras genéricas do chart) para evitar
+    # alert fatigue; só os alertas do ToggleMaster vão para PagerDuty/Discord/self-heal.
     route:
-      receiver: togglemaster-integrations
+      receiver: "null"
       group_by: [alertname, service]
       group_wait: 30s
       group_interval: 5m
       repeat_interval: 4h
+      routes:
+        - receiver: togglemaster-integrations
+          matchers:
+            - alertname =~ "AuthServiceHigh5xx|EvaluationServiceHigh5xx|AuthServiceUnavailable"
     receivers:
       - name: "null"
       - name: togglemaster-integrations

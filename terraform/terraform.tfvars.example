@@ -8,6 +8,11 @@ lab_role_name         = "LabRole"
 
 cluster_name = "togglemaster-cluster"
 
+# Fase 4: a stack de observabilidade (Prometheus, Grafana, Loki, OTel) não cabe
+# em 2 x t3.medium (limite de 17 pods por nó e 4 GiB de RAM). Use 3 nós.
+node_desired_size = 3
+node_max_size     = 3
+
 # NUNCA commite senha real. Prefira exportar via variável de ambiente:
 #   export TF_VAR_db_password="sua-senha-forte"
 db_password = "troque-esta-senha"
