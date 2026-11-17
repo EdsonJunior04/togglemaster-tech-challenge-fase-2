@@ -16,7 +16,7 @@ spec:
       serviceAccountName: observability-actions
       containers:
         - name: actions
-          image: 022992545057.dkr.ecr.us-east-1.amazonaws.com/observability-actions:latest
+          image: 181328472857.dkr.ecr.us-east-1.amazonaws.com/observability-actions:latest
           imagePullPolicy: Always
           ports:
             - name: http
