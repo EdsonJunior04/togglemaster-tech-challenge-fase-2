@@ -101,3 +101,5 @@ Saída (exemplo): `{"flag_name":"enable-new-dashboard","user_id":"user-abc","res
 
 **4. Verifique a Fila SQS:** Após fazer as chamadas acima, vá até o console da AWS, abra sua fila SQS e verifique se as mensagens (`EvaluationEvent`) estão chegando.
 
+
+> Build na conta AWS 018228902315 (reprovisionamento da Fase 4).
