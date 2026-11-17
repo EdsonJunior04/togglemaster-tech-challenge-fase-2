@@ -10,7 +10,7 @@ import boto3
 from botocore.exceptions import ClientError, NoCredentialsError
 from dotenv import load_dotenv
 from flask import Flask, jsonify, request
-from opentelemetry import metrics, propagation, trace
+from opentelemetry import metrics, propagate, trace
 
 load_dotenv()
 
@@ -82,7 +82,7 @@ def process_message(message):
         for key, value in attributes.items()
         if value.get("StringValue")
     }
-    parent_context = propagation.extract(carrier)
+    parent_context = propagate.extract(carrier)
 
     with tracer.start_as_current_span("analytics.process_sqs_message", context=parent_context):
         try:
