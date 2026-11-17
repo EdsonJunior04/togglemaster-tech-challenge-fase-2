@@ -2,7 +2,7 @@
 
 Este repositório contém a base da Fase 3 e a extensão de observabilidade da
 Fase 4. A configuração atual do ArgoCD aponta para
-`Pedroxzz/togglemaster-tech-challenge-fase-4`; ajuste `repoURL` nos manifests
+`EdsonJunior04/togglemaster-tech-challenge-fase-2`; ajuste `repoURL` nos manifests
 `argocd/applications/` caso o repositório de entrega tenha outro endereço.
 
 ## 0. Pré-requisitos

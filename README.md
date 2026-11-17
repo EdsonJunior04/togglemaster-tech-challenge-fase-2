@@ -66,7 +66,7 @@ Cliente
 
 ## Entregaveis
 
-- Repositorio GitHub: https://github.com/Pedroxzz/togglemaster-tech-challenge-fase-4.git
+- Repositorio GitHub: https://github.com/EdsonJunior04/togglemaster-tech-challenge-fase-2.git
 - Video demonstrativo: https://youtu.be/NDFY0PQ9oQs?si=wv0zMjZN6zacrQ2S
 - Relatorio final: [`output/pdf/relatorio-tech-challenge-fase-2.pdf`](output/pdf/relatorio-tech-challenge-fase-2.pdf)
 - Diagrama da arquitetura: [`docs/arquitetura-togglemaster-eks.png`](docs/arquitetura-togglemaster-eks.png)

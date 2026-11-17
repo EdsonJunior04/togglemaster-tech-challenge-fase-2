@@ -13,7 +13,7 @@ spec:
         releaseName: togglemaster-observability
         valueFiles:
           - $values/gitops/observability/kube-prometheus-stack-values.yaml
-    - repoURL: https://github.com/Pedroxzz/togglemaster-tech-challenge-fase-4.git
+    - repoURL: https://github.com/EdsonJunior04/togglemaster-tech-challenge-fase-2.git
       targetRevision: main
       ref: values
   destination:
