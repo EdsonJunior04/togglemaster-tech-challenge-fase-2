@@ -5,7 +5,7 @@ terraform {
   # O bucket precisa existir ANTES do primeiro `terraform init` (crie manualmente
   # uma única vez, ou rode um `terraform apply` local isolado no bootstrap/).
   backend "s3" {
-    bucket       = "togglemaster-tfstate-181328472857" # troque por um nome único (ex: com seu RM)
+    bucket       = "togglemaster-tfstate-018228902315" # troque por um nome único (ex: com seu RM)
     key          = "togglemaster/fase3/terraform.tfstate"
     region       = "us-east-1"
     use_lockfile = true # lock nativo do S3 (Terraform >= 1.9), sem precisar de DynamoDB

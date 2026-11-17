@@ -7,7 +7,7 @@ data:
   AWS_REGION: us-east-1
   AWS_DYNAMODB_TABLE: ToggleMasterAnalytics
   # Troque pela sqs_queue_url do `terraform output` após o apply
-  AWS_SQS_URL: https://sqs.us-east-1.amazonaws.com/181328472857/togglemaster-analytics-queue
+  AWS_SQS_URL: https://sqs.us-east-1.amazonaws.com/018228902315/togglemaster-analytics-queue
   SQS_WORKER_ENABLED: "true"
   CREATE_DYNAMODB_TABLE_IF_NOT_EXISTS: "false"
 
