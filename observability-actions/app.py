@@ -188,6 +188,6 @@ class AlertHandler(BaseHTTPRequestHandler):
 
 
 if __name__ == "__main__":
-    server = ThreadingHTTPServer(("0.0.0.0", int(os.getenv("PORT", "8080"))), AlertHandler)
+    server = ThreadingHTTPServer(("0.0.0.0", int(os.getenv("PORT", "8080"))), AlertHandler)  # nosec B104 - bind necessario para funcionar em container
     log.info("Webhook de alertas ouvindo na porta %s", server.server_port)
     server.serve_forever()

@@ -106,7 +106,7 @@ class WebhookHandlerTests(unittest.TestCase):
             },
             method="POST",
         )
-        return urlopen(request, timeout=2)
+        return urlopen(request, timeout=2)  # nosec B310 - URL fixa de localhost nos testes
 
     def test_self_healing_webhook_rejects_missing_token(self):
         with self.assertRaises(HTTPError) as raised:
